@@ -6,6 +6,7 @@ ci.sh
 setup.cfg
 setup.py
 versioneer.py
+COPYING/LICENSE.txt
 cdpcurl/__init__.py
 cdpcurl/__main__.py
 cdpcurl/_version.py

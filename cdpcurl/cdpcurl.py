@@ -117,6 +117,8 @@ def inner_main(argv):
                         help='verbose flag', default=False)
     parser.add_argument('-i', '--include', action='store_true',
                         help='include headers in the output', default=False)
+    parser.add_argument('-f', '--output-format', help='output format',
+                        choices=['string', 'bytes-literal'], default='bytes-literal')
     parser.add_argument('-X', '--request',
                         help='Specify request command to use',
                         default='GET')
@@ -181,7 +183,10 @@ def inner_main(argv):
 
     if args.include or IS_VERBOSE:
         print(response.headers, end='\n\n')
-    print(response.text.encode('utf-8'))
+    if (args.output_format == 'bytes-literal'):
+        print(response.text.encode('utf-8'))
+    else:
+        print(response.text)
 
     response.raise_for_status()
 

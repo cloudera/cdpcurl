@@ -119,6 +119,7 @@ def inner_main(argv):
                         help='include headers in the output', default=False)
     parser.add_argument('-f', '--output-format', help='output format',
                         choices=['string', 'bytes-literal'], default='bytes-literal')
+    parser.add_argument('--output', help='persist output to a file', default='')
     parser.add_argument('-X', '--request',
                         help='Specify request command to use',
                         default='GET')
@@ -187,6 +188,11 @@ def inner_main(argv):
         print(response.text.encode('utf-8'))
     else:
         print(response.text)
+
+    output = args.output
+    if output is not None:
+        with open(output, 'wb') as f:
+            f.write(response.content)
 
     response.raise_for_status()
 

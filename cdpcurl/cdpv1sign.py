@@ -59,7 +59,7 @@ def create_canonical_request_string(method,
     path = uri_components.path
     if not path:
         path = '/'
-    if uri_components.query and '=' not in uri_components.query:
+    if uri_components.query:
         path += '?' + uri_components.query
 
     canonical_string = method.upper() + '\n'

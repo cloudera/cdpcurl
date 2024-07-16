@@ -72,6 +72,21 @@ x-altus-auth: (very long string value)
 
 The signature algorithm specification is available from the [API documentation](https://cloudera.github.io/cdp-dev-docs/api-docs/).
 
+## Using the requests library
+
+The requests library can also be used like so:
+
+```python
+import requests
+from cdpcurl.requests import auth_v1
+
+r = requests.post('https://api.us-west-1.cdp.cloudera.com/api/v1/environments2/listEnvironments',
+                  json={},
+                  auth=auth_v1(profile='demo'))
+```
+
+`auth_v1` will automatically sign the request.
+
 ## License
 
 Copyright (c) 2020, Cloudera, Inc. All Rights Reserved.

@@ -12,9 +12,10 @@ from unittest import TestCase
 from mock import patch
 
 from cdpcurl.cdpcurl import make_request
+from cdpcurl.requests import auth_v1
 
 from requests.exceptions import SSLError
-from requests import Response
+from requests import Response, Request
 
 import pytest
 __author__ = 'cloudera'
@@ -233,3 +234,26 @@ class TestRequestResponse(TestCase):
     self.assertFalse(expected in str(r.text.encode('utf-8')))
 
     pass
+
+
+class TestRequestAuthPlugin(TestCase):
+    maxDiff = None
+
+    @patch('cdpcurl.requests.__now', new_callable=my_mock_utcnow)
+    def test_auth_v1(self, *args, **kvargs):
+        headers = {'Content-Type': 'application/json'}
+
+        request = Request('GET',
+                          'https://user:pass@host:123/path/?a=b&c=d',
+                          headers=headers,
+                          data='')
+
+        auth = auth_v1('ABC', 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=')
+
+        request = auth(request)
+
+        expected = {'Content-Type': 'application/json',
+                    'X-Altus-Date': 'Thu, 01 Jan 1970 00:00:00 GMT',
+                    'X-Altus-Auth': 'eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ=='}
+
+        self.assertEqual(expected, request.headers)

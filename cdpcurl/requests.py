@@ -29,8 +29,8 @@ from cdpcurl.cdpconfig import load_cdp_config
 
 
 def auth_v1(access_key=os.getenv('CDP_ACCESS_KEY_ID'),
-         private_key=os.getenv('CDP_PRIVATE_KEY'),
-         profile=os.getenv('CDP_PROFILE') or 'default'):
+            private_key=os.getenv('CDP_PRIVATE_KEY'),
+            profile=os.getenv('CDP_PROFILE') or 'default'):
     """
     Returns requests auth object for CDP API V1
 
@@ -40,30 +40,26 @@ def auth_v1(access_key=os.getenv('CDP_ACCESS_KEY_ID'),
     :param profile: str
     """
 
-    return CdpAuthV1(access_key, private_key, profile)
+    credentials_path = os.path.expanduser("~") + "/.cdp/credentials"
+    access_key, private_key = load_cdp_config(access_key,
+                                              private_key,
+                                              credentials_path,
+                                              profile)
 
+    def _sign_request(req):
+        """ Appends auth headers to request """
 
-class CdpAuthV1(): # pylint: disable=too-few-public-methods
-    """ Implementation of requests auth for CDP API V1 """
-
-    def __init__(self, access_key, private_key, profile):
-        credentials_path = os.path.expanduser("~") + "/.cdp/credentials"
-        self.access_key, self.private_key = load_cdp_config(access_key,
-                                                            private_key,
-                                                            credentials_path,
-                                                            profile)
-
-
-    def __call__(self, r):
         now = datetime.datetime.now(datetime.timezone.utc)
 
-        r.headers['X-Altus-Date'] = \
+        req.headers['X-Altus-Date'] = \
                 formatdate(timeval=now.timestamp(), usegmt=True)
 
-        r.headers['X-Altus-Auth'] = make_signature_header(r.method,
-                                           r.url,
-                                           r.headers,
-                                           self.access_key,
-                                           self.private_key)
+        req.headers['X-Altus-Auth'] = make_signature_header(req.method,
+                                                            req.url,
+                                                            req.headers,
+                                                            access_key,
+                                                            private_key)
 
-        return r
+        return req
+
+    return _sign_request

@@ -28,6 +28,10 @@ from cdpcurl.cdpv1sign import make_signature_header
 from cdpcurl.cdpconfig import load_cdp_config
 
 
+def __now():
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
 def auth_v1(access_key=os.getenv('CDP_ACCESS_KEY_ID'),
             private_key=os.getenv('CDP_PRIVATE_KEY'),
             profile=os.getenv('CDP_PROFILE') or 'default'):
@@ -49,10 +53,8 @@ def auth_v1(access_key=os.getenv('CDP_ACCESS_KEY_ID'),
     def _sign_request(req):
         """ Appends auth headers to request """
 
-        now = datetime.datetime.now(datetime.timezone.utc)
-
         req.headers['X-Altus-Date'] = \
-                formatdate(timeval=now.timestamp(), usegmt=True)
+                formatdate(timeval=__now().timestamp(), usegmt=True)
 
         req.headers['X-Altus-Auth'] = make_signature_header(req.method,
                                                             req.url,

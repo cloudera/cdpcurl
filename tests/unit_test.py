@@ -23,7 +23,7 @@ import pytest
 from requests import Response
 
 from cdpcurl.cdpcurl import make_request
-from cdpcurl.requests import auth_v1
+from cdpcurl.requests_auth import auth_v1
 
 from requests.exceptions import SSLError
 from requests import Response, Request
@@ -36,7 +36,7 @@ def mock_utc(mocker):
     )
 
     mocker.patch(
-        "cdpcurl.requests.__now",
+        "cdpcurl.requests_auth.__now",
         return_value=datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc),
     )
 

@@ -78,7 +78,7 @@ The requests library can also be used like so:
 
 ```python
 import requests
-from cdpcurl.requests import auth_v1
+from cdpcurl.requests_auth import auth_v1
 
 r = requests.post('https://api.us-west-1.cdp.cloudera.com/api/v1/environments2/listEnvironments',
                   json={},

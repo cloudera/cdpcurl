@@ -12,7 +12,7 @@ from unittest import TestCase
 from mock import patch
 
 from cdpcurl.cdpcurl import make_request
-from cdpcurl.requests import auth_v1
+from cdpcurl.requests_auth import auth_v1
 
 from requests.exceptions import SSLError
 from requests import Response, Request
@@ -239,7 +239,7 @@ class TestRequestResponse(TestCase):
 class TestRequestAuthPlugin(TestCase):
     maxDiff = None
 
-    @patch('cdpcurl.requests.__now', new_callable=my_mock_utcnow)
+    @patch('cdpcurl.requests_auth.__now', new_callable=my_mock_utcnow)
     def test_auth_v1(self, *args, **kvargs):
         headers = {'Content-Type': 'application/json'}
 

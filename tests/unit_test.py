@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2025 Cloudera, Inc.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import datetime
 import logging
@@ -17,39 +32,40 @@ from requests.exceptions import SSLError
 from requests import Response
 
 import pytest
-__author__ = 'cloudera'
+
+__author__ = "cloudera"
 
 
 def my_mock_get():
-    class Object():
+    class Object:
         pass
 
     def ss(*args, **kargs):
         print("in mock")
         response = Object()
         response.status_code = 200
-        response.text = 'some text'
+        response.text = "some text"
         return response
 
     return ss
 
 
 def my_mock_send_request():
-    class Object():
+    class Object:
         pass
 
     def ss(*args, **kargs):
         print("in mock")
         response = Object()
         response.status_code = 200
-        response.text = 'some text'
+        response.text = "some text"
         return response
 
     return ss
 
 
 def my_mock_send_request_verify():
-    class Object():
+    class Object:
         pass
 
     def ss(uri, data, headers, method, verify, **kargs):
@@ -58,7 +74,7 @@ def my_mock_send_request_verify():
             raise SSLError
         response = Object()
         response.status_code = 200
-        response.text = 'some text'
+        response.text = "some text"
 
         return response
 
@@ -66,7 +82,7 @@ def my_mock_send_request_verify():
 
 
 def my_mock_utcnow():
-    class Object():
+    class Object:
         pass
 
     def ss(*args, **kargs):
@@ -79,23 +95,27 @@ def my_mock_utcnow():
 class TestMakeRequest(TestCase):
     maxDiff = None
 
-    @patch('requests.get', new_callable=my_mock_get)
-    @patch('cdpcurl.cdpcurl.__send_request', new_callable=my_mock_send_request)
-    @patch('cdpcurl.cdpcurl.__now', new_callable=my_mock_utcnow)
+    @patch("requests.get", new_callable=my_mock_get)
+    @patch("cdpcurl.cdpcurl.__send_request", new_callable=my_mock_send_request)
+    @patch("cdpcurl.cdpcurl.__now", new_callable=my_mock_utcnow)
     def test_make_request(self, *args, **kvargs):
-        headers = {'content-type': 'application/json'}
-        params = {'method': 'GET',
-                  'uri': 'https://user:pass@host:123/path/?a=b&c=d',
-                  'headers': headers,
-                  'data': '',
-                  'access_key': 'ABC',
-                  'private_key': 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=',
-                  'data_binary': False}
+        headers = {"content-type": "application/json"}
+        params = {
+            "method": "GET",
+            "uri": "https://user:pass@host:123/path/?a=b&c=d",
+            "headers": headers,
+            "data": "",
+            "access_key": "ABC",
+            "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
+            "data_binary": False,
+        }
         make_request(**params)
 
-        expected = {'content-type': 'application/json',
-                    'x-altus-date': 'Thu, 01 Jan 1970 00:00:00 GMT',
-                    'x-altus-auth': 'eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ=='}
+        expected = {
+            "content-type": "application/json",
+            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
+            "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        }
 
         self.assertEqual(expected, headers)
 
@@ -105,44 +125,51 @@ class TestMakeRequest(TestCase):
 class TestMakeRequestVerifyBadPrivateKeyRaises(TestCase):
     maxDiff = None
 
-    @patch('cdpcurl.cdpcurl.__send_request', new_callable=my_mock_send_request_verify)
-    @patch('cdpcurl.cdpcurl.__now', new_callable=my_mock_utcnow)
+    @patch("cdpcurl.cdpcurl.__send_request", new_callable=my_mock_send_request_verify)
+    @patch("cdpcurl.cdpcurl.__now", new_callable=my_mock_utcnow)
     def test_make_request(self, *args, **kvargs):
-        headers = {'content-type': 'application/json'}
-        params = {'method': 'GET',
-                  'uri': 'https://user:pass@host:123/path/?a=b&c=d',
-                  'headers': headers,
-                  'data': '',
-                  'access_key': 'ABC',
-                  'private_key': 'NOPE',
-                  'data_binary': False,
-                  'verify': False}
+        headers = {"content-type": "application/json"}
+        params = {
+            "method": "GET",
+            "uri": "https://user:pass@host:123/path/?a=b&c=d",
+            "headers": headers,
+            "data": "",
+            "access_key": "ABC",
+            "private_key": "NOPE",
+            "data_binary": False,
+            "verify": False,
+        }
 
         with pytest.raises(Exception):
             make_request(**params)
 
         pass
 
+
 class TestMakeRequestVerifySSLPass(TestCase):
     maxDiff = None
 
-    @patch('cdpcurl.cdpcurl.__send_request', new_callable=my_mock_send_request_verify)
-    @patch('cdpcurl.cdpcurl.__now', new_callable=my_mock_utcnow)
+    @patch("cdpcurl.cdpcurl.__send_request", new_callable=my_mock_send_request_verify)
+    @patch("cdpcurl.cdpcurl.__now", new_callable=my_mock_utcnow)
     def test_make_request(self, *args, **kvargs):
-        headers = {'content-type': 'application/json'}
-        params = {'method': 'GET',
-                  'uri': 'https://user:pass@host:123/path/?a=b&c=d',
-                  'headers': headers,
-                  'data': '',
-                  'access_key': 'ABC',
-                  'private_key': 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=',
-                  'data_binary': False,
-                  'verify': True}
+        headers = {"content-type": "application/json"}
+        params = {
+            "method": "GET",
+            "uri": "https://user:pass@host:123/path/?a=b&c=d",
+            "headers": headers,
+            "data": "",
+            "access_key": "ABC",
+            "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
+            "data_binary": False,
+            "verify": True,
+        }
         make_request(**params)
 
-        expected = {'content-type': 'application/json',
-                    'x-altus-date': 'Thu, 01 Jan 1970 00:00:00 GMT',
-                    'x-altus-auth': 'eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ=='}
+        expected = {
+            "content-type": "application/json",
+            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
+            "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        }
 
         self.assertEqual(expected, headers)
 
@@ -150,53 +177,63 @@ class TestMakeRequestVerifySSLPass(TestCase):
 
 
 class TestMakeRequestWithBinaryData(TestCase):
-  maxDiff = None
+    maxDiff = None
 
-  @patch('requests.get', new_callable=my_mock_get)
-  @patch('cdpcurl.cdpcurl.__send_request', new_callable=my_mock_send_request)
-  @patch('cdpcurl.cdpcurl.__now', new_callable=my_mock_utcnow)
-  def test_make_request(self, *args, **kvargs):
-    headers = {'content-type': 'application/json'}
-    params = {'method': 'GET',
-              'uri': 'https://user:pass@host:123/path/?a=b&c=d',
-              'headers': headers,
-              'data': b'C\xcfI\x91\xc1\xd0\tw<\xa8\x13\x06{=\x9b\xb3\x1c\xfcl\xfe\xb9\xb18zS\xf4%i*Q\xc9v',
-              'access_key': 'ABC',
-              'private_key': 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=',
-              'data_binary': True}
-    make_request(**params)
+    @patch("requests.get", new_callable=my_mock_get)
+    @patch("cdpcurl.cdpcurl.__send_request", new_callable=my_mock_send_request)
+    @patch("cdpcurl.cdpcurl.__now", new_callable=my_mock_utcnow)
+    def test_make_request(self, *args, **kvargs):
+        headers = {"content-type": "application/json"}
+        params = {
+            "method": "GET",
+            "uri": "https://user:pass@host:123/path/?a=b&c=d",
+            "headers": headers,
+            "data": b"C\xcfI\x91\xc1\xd0\tw<\xa8\x13\x06{=\x9b\xb3\x1c\xfcl\xfe\xb9\xb18zS\xf4%i*Q\xc9v",
+            "access_key": "ABC",
+            "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
+            "data_binary": True,
+        }
+        make_request(**params)
 
-    expected = {'content-type': 'application/json',
-                'x-altus-date': 'Thu, 01 Jan 1970 00:00:00 GMT',
-                'x-altus-auth': 'eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ=='}
+        expected = {
+            "content-type": "application/json",
+            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
+            "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        }
 
-    self.assertEqual(expected, headers)
+        self.assertEqual(expected, headers)
 
-    pass
+        pass
 
 
 class TestHostFromHeaderUsedInCanonicalHeader(TestCase):
     maxDiff = None
 
-    @patch('requests.get', new_callable=my_mock_get)
-    @patch('cdpcurl.cdpcurl.__send_request', new_callable=my_mock_send_request)
-    @patch('cdpcurl.cdpcurl.__now', new_callable=my_mock_utcnow)
+    @patch("requests.get", new_callable=my_mock_get)
+    @patch("cdpcurl.cdpcurl.__send_request", new_callable=my_mock_send_request)
+    @patch("cdpcurl.cdpcurl.__now", new_callable=my_mock_utcnow)
     def test_make_request(self, *args, **kvargs):
-        headers = {'host': 'some.other.host.address.com',
-                   'content-type': 'application/json'}
-        params = {'method': 'GET',
-                  'uri': 'https://user:pass@host:123/path/?a=b&c=d',
-                  'headers': headers,
-                  'data': '',
-                  'access_key': 'ABC',
-                  'private_key': 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=',
-                  'data_binary': False}
+        headers = {
+            "host": "some.other.host.address.com",
+            "content-type": "application/json",
+        }
+        params = {
+            "method": "GET",
+            "uri": "https://user:pass@host:123/path/?a=b&c=d",
+            "headers": headers,
+            "data": "",
+            "access_key": "ABC",
+            "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
+            "data_binary": False,
+        }
         make_request(**params)
 
-        expected = {'host': 'some.other.host.address.com',
-                    'content-type': 'application/json',
-                    'x-altus-date': 'Thu, 01 Jan 1970 00:00:00 GMT',
-                    'x-altus-auth': 'eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ=='}
+        expected = {
+            "host": "some.other.host.address.com",
+            "content-type": "application/json",
+            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
+            "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        }
 
         self.assertEqual(expected, headers)
 
@@ -204,32 +241,36 @@ class TestHostFromHeaderUsedInCanonicalHeader(TestCase):
 
 
 class TestRequestResponse(TestCase):
-  maxDiff = None
+    maxDiff = None
 
-  @patch('cdpcurl.cdpcurl.__send_request')
-  def test_make_request(self, mocked_resp):
-    resp = Response()
-    resp.status_code=200
-    resp._content= b'{"file_name": "test.yml", "env": "staging", "hash": "\xe5\xad\x97"}'
-    resp.encoding= 'UTF-8'
-    mocked_resp.return_value = resp
+    @patch("cdpcurl.cdpcurl.__send_request")
+    def test_make_request(self, mocked_resp):
+        resp = Response()
+        resp.status_code = 200
+        resp._content = (
+            b'{"file_name": "test.yml", "env": "staging", "hash": "\xe5\xad\x97"}'
+        )
+        resp.encoding = "UTF-8"
+        mocked_resp.return_value = resp
 
-    headers = {}
-    params = {'method': 'GET',
-              'uri': 'https://user:pass@host:123/path/?a=b&c=d',
-              'headers': headers,
-              'data': b'C\xcfI\x91\xc1\xd0\tw<\xa8\x13\x06{=\x9b\xb3\x1c\xfcl\xfe\xb9\xb18zS\xf4%i*Q\xc9v',
-              'access_key': '',
-              'private_key': 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=',
-              'data_binary': True}
-    r = make_request(**params)
+        headers = {}
+        params = {
+            "method": "GET",
+            "uri": "https://user:pass@host:123/path/?a=b&c=d",
+            "headers": headers,
+            "data": b"C\xcfI\x91\xc1\xd0\tw<\xa8\x13\x06{=\x9b\xb3\x1c\xfcl\xfe\xb9\xb18zS\xf4%i*Q\xc9v",
+            "access_key": "",
+            "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
+            "data_binary": True,
+        }
+        r = make_request(**params)
 
-    expected = u'字'
+        expected = "字"
 
-    ### assert that the unicode character is in the response.text output
-    self.assertTrue(expected in r.text)
+        ### assert that the unicode character is in the response.text output
+        self.assertTrue(expected in r.text)
 
-    ### assert that the unicode character is _not_ in the response.text which has been converted to bytes
-    self.assertFalse(expected in str(r.text.encode('utf-8')))
+        ### assert that the unicode character is _not_ in the response.text which has been converted to bytes
+        self.assertFalse(expected in str(r.text.encode("utf-8")))
 
-    pass
+        pass

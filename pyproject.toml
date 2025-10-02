@@ -62,6 +62,7 @@ dependencies = [
     "pre-commit",
     "pytest",
     "pytest-cov",
+    "pytest-mock",
 ]
 
 [tool.hatch.envs.default.scripts]

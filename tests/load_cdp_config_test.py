@@ -15,20 +15,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import TestCase
-
 from cdpcurl.cdpconfig import load_cdp_config
 
-__author__ = "cloudera"
 
+def test_load_cdp_credentials_default_profile():
+    access_key, private_key = load_cdp_config(
+        None,
+        None,
+        "tests/data/credentials",
+        "default",
+    )
 
-class Test__load_cdp_config(TestCase):
-    def test(self):
-        access_key, private_key = load_cdp_config(
-            None,
-            None,
-            "./tests/data/credentials",
-            "default",
-        )
+    assert [access_key, private_key] == ["default_access_key", "default_private_key"]
 
-        self.assertEqual([access_key, private_key], ["access_key_id", "private_key"])
+def test_load_cdp_credentials_custom_profile():
+    access_key, private_key = load_cdp_config(
+        None,
+        None,
+        "tests/data/credentials",
+        "custom_profile",
+    )
+
+    assert [access_key, private_key] == ["custom_profile_access_key", "custom_profile_private_key"]

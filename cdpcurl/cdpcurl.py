@@ -48,7 +48,6 @@ def __now():
     return datetime.datetime.now(datetime.timezone.utc)
 
 
-# pylint: disable=too-many-arguments,too-many-locals
 def make_request(
     method,
     uri,
@@ -60,7 +59,7 @@ def make_request(
     verify=True,
 ):
     """
-    # Make HTTP request with CDP request signing
+    Make HTTP request with CDP request signing
 
     :return: http request object
     :param method: str

@@ -1,0 +1,10 @@
+# pytest
+.coverage
+.pytest_cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+dist/

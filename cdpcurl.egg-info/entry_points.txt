@@ -1,4 +1,0 @@
-[console_scripts]
-cdpcurl = cdpcurl.__main__:main
-cdpv1sign = cdpcurl.cdpv1sign:main
-

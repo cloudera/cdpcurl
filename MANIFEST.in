@@ -1,7 +1,0 @@
-include versioneer.py
-include cdpcurl/_version.py
-include LICENSE.txt
-include NOTICE.txt
-include README.md
-include ci.sh
-recursive-include COPYING *

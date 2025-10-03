@@ -1,0 +1,87 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2025 Cloudera, Inc.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[project]
+name = "cdpcurl"
+dynamic = ["version"]
+authors = [
+    {name = "Cloudera, Inc."}
+]
+description = "A curl-like tool for Cloudera on Cloud (CDP) API requests"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+keywords = ["curl", "cdp", "cloudera", "authentication", "public_cloud"]
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Developers',
+    'Intended Audience :: System Administrators',
+    'License :: OSI Approved :: Apache Software License',
+    'Natural Language :: English',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+]
+dependencies = [
+    'configargparse',
+    'configparser',
+    'cryptography>=2.8',
+    'requests>=2.20.0',
+    'urllib3>=1.25.3',
+]
+
+[project.scripts]
+cdpcurl = "cdpcurl.cdpcurl:main"
+cdpsign = "cdpcurl.cdpv1sign:main"
+
+[tool.hatch.version]
+path = "cdpcurl/_version.py"
+scheme = "semver"
+validate-bump = true
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+]
+
+[tool.hatch.envs.default.scripts]
+lint = "pre-commit run -a"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "LICENSE",
+    "README.md",
+    "cdpcurl",
+    "tests",
+]
+
+[build-system]
+requires = [
+    "hatchling",
+    "hatch-semver"
+]
+build-backend = "hatchling.build"

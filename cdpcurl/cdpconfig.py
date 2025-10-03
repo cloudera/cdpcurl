@@ -1,31 +1,35 @@
-# Copyright (c) 2020, Cloudera, Inc. All Rights Reserved.
+# -*- coding: utf-8 -*-
+
+# Copyright 2025 Cloudera, Inc.  All rights reserved.
 #
-# This file is part of cdpcurl.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# cdpcurl is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
-# cdpcurl is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with cdpcurl.  If not, see <https://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 """
 cdp profile support
 """
 
+import configparser
 import os
 
-import configparser
+from typing import Tuple
 
 
-def load_cdp_config(access_key, private_key, credentials_path, profile):
-    # type: (str, str, str, str) -> Tuple[str, str]
+def load_cdp_config(
+    access_key,
+    private_key,
+    credentials_path,
+    profile,
+) -> Tuple[str, str]:
     """
     Load CDP credential configuration, by parsing credential file, by checking
     (access_key,private_key) are not (None,None)
@@ -33,27 +37,27 @@ def load_cdp_config(access_key, private_key, credentials_path, profile):
     if access_key is None or private_key is None:
         exists = os.path.exists(credentials_path)
         if not exists:
-            msg = 'Credentials file \'{0}\' does not exist'
+            msg = "Credentials file '{0}' does not exist"
             raise Exception(msg.format(credentials_path))
 
         config = configparser.ConfigParser()
         config.read(credentials_path)
 
         if not config.has_section(profile):
-            raise Exception('CDP profile \'{0}\' not found'.format(profile))
+            raise Exception("CDP profile '{0}' not found".format(profile))
 
         if access_key is None:
             if config.has_option(profile, "cdp_access_key_id"):
                 access_key = config.get(profile, "cdp_access_key_id")
             else:
-                msg = 'CDP profile \'{0}\' is missing \'cdp_access_key_id\''
+                msg = "CDP profile '{0}' is missing 'cdp_access_key_id'"
                 raise Exception(msg.format(profile))
 
         if private_key is None:
             if config.has_option(profile, "cdp_private_key"):
                 private_key = config.get(profile, "cdp_private_key")
             else:
-                msg = 'CDP profile \'{0}\' is missing \'cdp_private_key\''
+                msg = "CDP profile '{0}' is missing 'cdp_private_key'"
                 raise Exception(msg.format(profile))
 
     return access_key, private_key

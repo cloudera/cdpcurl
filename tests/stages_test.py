@@ -26,11 +26,12 @@ from cdpcurl.cdpv1sign import (
     create_signature_header,
 )
 
+
 def test_create_canonical_request_string():
     """
     Test the function to create the "canonical" request string.
     """
-    
+
     uri = "https://cdpapitest.cloudera.com/api/v1/test/doTestThing"
     headers = {
         "content-type": "application/json",
@@ -44,15 +45,18 @@ def test_create_canonical_request_string():
         "ed25519v1",
     )
 
-    expected = "\n".join([
-        "POST",
-        "application/json",
-        "Tue, 3 Jun 2008 11:05:30 GMT",
-        "/api/v1/test/doTestThing",
-        "ed25519v1",
-    ])
+    expected = "\n".join(
+        [
+            "POST",
+            "application/json",
+            "Tue, 3 Jun 2008 11:05:30 GMT",
+            "/api/v1/test/doTestThing",
+            "ed25519v1",
+        ],
+    )
 
     assert canonical_request_string == expected
+
 
 def test_create_signature_string():
     """
@@ -74,7 +78,11 @@ def test_create_signature_string():
         private_key,
     )
 
-    assert signature_string == "MujQ0wGS6CADCcidsqPvJ9_ETbK_RFUq9DQj3dcLPtj43xC46wjprhPQ_J3o9qFK8k1rhU3lOt7WbRSjCrGvDA=="
+    assert (
+        signature_string
+        == "MujQ0wGS6CADCcidsqPvJ9_ETbK_RFUq9DQj3dcLPtj43xC46wjprhPQ_J3o9qFK8k1rhU3lOt7WbRSjCrGvDA=="
+    )
+
 
 def test_create_encoded_authn_params_string():
     """
@@ -84,13 +92,17 @@ def test_create_encoded_authn_params_string():
 
     access_key = "ABC"
     auth_method = "ed25519v1"
-    
+
     encoded_auth_params_string = create_encoded_authn_params_string(
         access_key,
         auth_method,
     )
 
-    assert encoded_auth_params_string == b"eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ=="
+    assert (
+        encoded_auth_params_string
+        == b"eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ=="
+    )
+
 
 def test_create_signature_header():
     """
@@ -101,10 +113,13 @@ def test_create_signature_header():
         b"eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ=="
     )
     signature = "MujQ0wGS6CADCcidsqPvJ9_ETbK_RFUq9DQj3dcLPtj43xC46wjprhPQ_J3o9qFK8k1rhU3lOt7WbRSjCrGvDA=="
-    
+
     signature_header = create_signature_header(
         encoded_auth_params_string,
         signature,
     )
 
-    assert signature_header == "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.MujQ0wGS6CADCcidsqPvJ9_ETbK_RFUq9DQj3dcLPtj43xC46wjprhPQ_J3o9qFK8k1rhU3lOt7WbRSjCrGvDA=="
+    assert (
+        signature_header
+        == "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.MujQ0wGS6CADCcidsqPvJ9_ETbK_RFUq9DQj3dcLPtj43xC46wjprhPQ_J3o9qFK8k1rhU3lOt7WbRSjCrGvDA=="
+    )

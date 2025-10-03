@@ -28,6 +28,7 @@ def test_load_cdp_credentials_default_profile():
 
     assert [access_key, private_key] == ["default_access_key", "default_private_key"]
 
+
 def test_load_cdp_credentials_custom_profile():
     access_key, private_key = load_cdp_config(
         None,
@@ -36,4 +37,7 @@ def test_load_cdp_credentials_custom_profile():
         "custom_profile",
     )
 
-    assert [access_key, private_key] == ["custom_profile_access_key", "custom_profile_private_key"]
+    assert [access_key, private_key] == [
+        "custom_profile_access_key",
+        "custom_profile_private_key",
+    ]

@@ -20,28 +20,85 @@ cdpcurl implementation
 """
 
 import datetime
+import http.client
+import io
 import os
-import pprint
+import re
 import sys
 
 import configargparse
 import requests
 
+from contextlib import redirect_stdout, redirect_stderr
 from email.utils import formatdate
 
 from cdpcurl.cdpv1sign import make_signature_header
 from cdpcurl.cdpconfig import load_cdp_config
 
-__author__ = "cloudera"
 
-IS_VERBOSE = False
+def __format_logs(data):
+    formatted_output = ""
+    lines = data.strip().split('\n')
+    
+    send_re = r"^(send: b'|send: )(.*?)'(\r\n)?$"
+    reply_re = r"^reply: '(.*?)'$"
+    header_re = r"^header: (.*?)[:]\s(.*)$"
+    
+    for line in lines:
+        if not line:
+            continue
+
+        match = re.match(send_re, line)
+        if match:
+            decoded_bytes = match.group(2).encode('latin-1').decode('unicode_escape')
+            for subline in decoded_bytes.splitlines():
+                formatted_output += f"> {subline}\n"
+            continue
+            
+        match = re.match(reply_re, line)
+        if match:
+            decoded_bytes = match.group(1).encode('latin-1').decode('unicode_escape')
+            for subline in decoded_bytes.splitlines():
+                formatted_output += f"< {subline}\n"
+            continue
+
+        match = re.match(header_re, line)
+        if match:
+            formatted_output += f"< {match.group(1)}: {match.group(2)}\n"
+            continue
+        
+        formatted_output += f"* {line}\n"
+        
+    return formatted_output.strip()
 
 
-def __log(*args, **kwargs):
-    if not IS_VERBOSE:
-        return
-    stderr_pp = pprint.PrettyPrinter(stream=sys.stderr)
-    stderr_pp.pprint(*args, **kwargs)
+def __send_request(uri, data, headers, method, verify, verbose):
+
+    if verbose:
+        http.client.HTTPConnection.debuglevel = 1
+        
+        output_buffer = io.StringIO()
+
+        with redirect_stdout(output_buffer), redirect_stderr(output_buffer):
+            response = requests.request(
+                method,
+                uri,
+                headers=headers,
+                data=data,
+                verify=verify,
+            )
+
+        print(__format_logs(output_buffer.getvalue()))
+        
+        return response
+    else:
+        return requests.request(
+            method,
+            uri,
+            headers=headers,
+            data=data,
+            verify=verify,
+        )
 
 
 def __now():
@@ -57,6 +114,7 @@ def make_request(
     private_key,
     data_binary,
     verify=True,
+    verbose=False,
 ):
     """
     Make HTTP request with CDP request signing
@@ -71,14 +129,15 @@ def make_request(
     :param private_key: str
     :param data_binary: bool
     :param verify: bool
+    :param verbose: bool
     """
 
     if "x-altus-auth" in headers:
         raise Exception("Malformed request: x-altus-auth found in headers")
-    
+
     if "x-altus-date" in headers:
         raise Exception("Malformed request: x-altus-date found in headers")
-    
+
     headers["x-altus-date"] = formatdate(
         timeval=__now().timestamp(),
         usegmt=True,
@@ -93,30 +152,9 @@ def make_request(
     )
 
     if data_binary:
-        return __send_request(uri, data, headers, method, verify)
-    
-    return __send_request(uri, data.encode("utf-8"), headers, method, verify)
+        return __send_request(uri, data, headers, method, verify, verbose)
 
-
-def __send_request(uri, data, headers, method, verify):
-    __log("\nHEADERS++++++++++++++++++++++++++++++++++++")
-    __log(headers)
-
-    __log("\nBEGIN REQUEST++++++++++++++++++++++++++++++++++++")
-    __log("Request URL = " + uri)
-
-    response = requests.request(
-        method,
-        uri,
-        headers=headers,
-        data=data,
-        verify=verify,
-    )
-
-    __log("\nRESPONSE++++++++++++++++++++++++++++++++++++")
-    __log("Response code: %d\n" % response.status_code)
-
-    return response
+    return __send_request(uri, data.encode("utf-8"), headers, method, verify, verbose)
 
 
 def inner_main(argv):
@@ -126,7 +164,7 @@ def inner_main(argv):
     default_headers = ["Content-Type: application/json"]
 
     parser = configargparse.ArgumentParser(
-        description="curl with CDP request signing",
+        description="CURL with CDP request signing",
         formatter_class=configargparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -134,14 +172,7 @@ def inner_main(argv):
         "-v",
         "--verbose",
         action="store_true",
-        help="verbose flag",
-        default=False,
-    )
-    parser.add_argument(
-        "-i",
-        "--include",
-        action="store_true",
-        help="include headers in the output",
+        help="log request and response headers",
         default=False,
     )
     parser.add_argument(
@@ -149,7 +180,7 @@ def inner_main(argv):
         "--output-format",
         help="output format",
         choices=["string", "bytes-literal"],
-        default="bytes-literal",
+        default="string",
     )
     parser.add_argument(
         "-X",
@@ -186,12 +217,6 @@ def inner_main(argv):
     parser.add_argument("uri")
 
     args = parser.parse_args(argv)
-    # pylint: disable=global-statement
-    global IS_VERBOSE
-    IS_VERBOSE = args.verbose
-
-    if args.verbose:
-        __log(vars(args))
 
     data = args.data
 
@@ -206,6 +231,7 @@ def inner_main(argv):
     # pylint: disable=unnecessary-comprehension
     headers = {k: v for (k, v) in map(lambda s: s.split(": "), args.header)}
 
+    # TODO Enable credential path per argument
     credentials_path = os.path.expanduser("~") + "/.cdp/credentials"
     args.access_key, args.private_key = load_cdp_config(
         args.access_key,
@@ -229,10 +255,9 @@ def inner_main(argv):
         args.private_key,
         args.data_binary,
         args.insecure,
+        args.verbose,
     )
 
-    if args.include or IS_VERBOSE:
-        print(response.headers, end="\n\n")
     if args.output_format == "bytes-literal":
         print(response.text.encode("utf-8"))
     else:

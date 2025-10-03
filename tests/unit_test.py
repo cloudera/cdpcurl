@@ -32,9 +32,11 @@ def mock_utc(mocker):
         return_value=datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc),
     )
 
+
 @pytest.fixture()
 def cdp_request(mocker) -> MagicMock:
     return mocker.patch("cdpcurl.cdpcurl.requests.request")
+
 
 @pytest.fixture(autouse=True)
 def cdp_response(cdp_request, mocker) -> Mock:
@@ -44,12 +46,13 @@ def cdp_response(cdp_request, mocker) -> Mock:
     cdp_request.return_value = mock_response
     return mock_response
 
+
 def test_make_request(cdp_request):
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
         "headers": {
-            "content-type": "application/json"
+            "content-type": "application/json",
         },
         "data": "",
         "access_key": "ABC",
@@ -73,13 +76,14 @@ def test_make_request(cdp_request):
         verify=True,
     )
 
+
 def test_make_request_invalid_date_header():
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
         "headers": {
             "content-type": "application/json",
-            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT"
+            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
         },
         "data": "",
         "access_key": "ABC",
@@ -88,8 +92,12 @@ def test_make_request_invalid_date_header():
         "verify": False,
     }
 
-    with pytest.raises(Exception, match="Malformed request: x-altus-date found in headers"):
+    with pytest.raises(
+        Exception,
+        match="Malformed request: x-altus-date found in headers",
+    ):
         make_request(**params)
+
 
 def test_make_request_invalid_auth_header():
     params = {
@@ -106,15 +114,19 @@ def test_make_request_invalid_auth_header():
         "verify": False,
     }
 
-    with pytest.raises(Exception, match="Malformed request: x-altus-auth found in headers"):
+    with pytest.raises(
+        Exception,
+        match="Malformed request: x-altus-auth found in headers",
+    ):
         make_request(**params)
+
 
 def test_make_request_invalid_private_key():
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
         "headers": {
-            "content-type": "application/json"
+            "content-type": "application/json",
         },
         "data": "",
         "access_key": "ABC",
@@ -126,12 +138,13 @@ def test_make_request_invalid_private_key():
     with pytest.raises(Exception, match="Only ed25519v1 keys are supported"):
         make_request(**params)
 
+
 def test_make_request_verify_ssl(cdp_request):
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
         "headers": {
-            "content-type": "application/json"
+            "content-type": "application/json",
         },
         "data": "",
         "access_key": "ABC",
@@ -156,12 +169,13 @@ def test_make_request_verify_ssl(cdp_request):
         verify=params["verify"],
     )
 
+
 def test_make_request_with_binary_data(cdp_request):
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
         "headers": {
-            "content-type": "application/json"
+            "content-type": "application/json",
         },
         "data": b"C\xcfI\x91\xc1\xd0\tw<\xa8\x13\x06{=\x9b\xb3\x1c\xfcl\xfe\xb9\xb18zS\xf4%i*Q\xc9v",
         "access_key": "ABC",
@@ -184,6 +198,7 @@ def test_make_request_with_binary_data(cdp_request):
         data=params["data"],
         verify=True,
     )
+
 
 def test_make_request_additional_header(cdp_request):
     params = {

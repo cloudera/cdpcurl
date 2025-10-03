@@ -38,26 +38,26 @@ from cdpcurl.cdpconfig import load_cdp_config
 
 def __format_logs(data):
     formatted_output = ""
-    lines = data.strip().split('\n')
-    
+    lines = data.strip().split("\n")
+
     send_re = r"^(send: b'|send: )(.*?)'(\r\n)?$"
     reply_re = r"^reply: '(.*?)'$"
     header_re = r"^header: (.*?)[:]\s(.*)$"
-    
+
     for line in lines:
         if not line:
             continue
 
         match = re.match(send_re, line)
         if match:
-            decoded_bytes = match.group(2).encode('latin-1').decode('unicode_escape')
+            decoded_bytes = match.group(2).encode("latin-1").decode("unicode_escape")
             for subline in decoded_bytes.splitlines():
                 formatted_output += f"> {subline}\n"
             continue
-            
+
         match = re.match(reply_re, line)
         if match:
-            decoded_bytes = match.group(1).encode('latin-1').decode('unicode_escape')
+            decoded_bytes = match.group(1).encode("latin-1").decode("unicode_escape")
             for subline in decoded_bytes.splitlines():
                 formatted_output += f"< {subline}\n"
             continue
@@ -66,9 +66,9 @@ def __format_logs(data):
         if match:
             formatted_output += f"< {match.group(1)}: {match.group(2)}\n"
             continue
-        
+
         formatted_output += f"* {line}\n"
-        
+
     return formatted_output.strip()
 
 
@@ -76,7 +76,7 @@ def __send_request(uri, data, headers, method, verify, verbose):
 
     if verbose:
         http.client.HTTPConnection.debuglevel = 1
-        
+
         output_buffer = io.StringIO()
 
         with redirect_stdout(output_buffer), redirect_stderr(output_buffer):
@@ -89,7 +89,7 @@ def __send_request(uri, data, headers, method, verify, verbose):
             )
 
         print(__format_logs(output_buffer.getvalue()))
-        
+
         return response
     else:
         return requests.request(

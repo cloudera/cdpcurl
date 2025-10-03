@@ -69,6 +69,14 @@ dependencies = [
 lint = "pre-commit run -a"
 test = "pytest {args:tests}"
 
+[tool.hatch.build.targets.sdist]
+include = [
+    "LICENSE",
+    "README.md",
+    "cdpcurl",
+    "tests",
+]
+
 [build-system]
 requires = [
     "hatchling",

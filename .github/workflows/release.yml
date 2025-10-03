@@ -15,7 +15,7 @@
 name: Publish to PyPI
 
 on:
-  prelease:
+  release:
     types: [published]
   workflow_dispatch:
 
@@ -59,4 +59,4 @@ jobs:
             name: python-package-distributions
             path: dist/
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v.13.0
+        uses: pypa/gh-action-pypi-publish@v1.13.0

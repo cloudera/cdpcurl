@@ -1,5 +1,0 @@
-configargparse
-configparser
-pure25519
-requests
-urllib3[secure]

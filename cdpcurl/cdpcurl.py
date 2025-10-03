@@ -74,13 +74,16 @@ def make_request(
     """
 
     if "x-altus-auth" in headers:
-        raise Exception("x-altus-auth found in headers!")
+        raise Exception("Malformed request: x-altus-auth found in headers")
+    
     if "x-altus-date" in headers:
-        raise Exception("x-altus-date found in headers!")
+        raise Exception("Malformed request: x-altus-date found in headers")
+    
     headers["x-altus-date"] = formatdate(
         timeval=__now().timestamp(),
         usegmt=True,
     )
+
     headers["x-altus-auth"] = make_signature_header(
         method,
         uri,
@@ -91,6 +94,7 @@ def make_request(
 
     if data_binary:
         return __send_request(uri, data, headers, method, verify)
+    
     return __send_request(uri, data.encode("utf-8"), headers, method, verify)
 
 

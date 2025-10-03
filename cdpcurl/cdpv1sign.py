@@ -60,9 +60,9 @@ def create_canonical_request_string(
     uri_components = urlparse(uri)
     path = uri_components.path
     if not path:
-        path = "/"
-    if uri_components.query and "=" not in uri_components.query:
-        path += "?" + uri_components.query
+        path = '/'
+    if uri_components.query:
+        path += '?' + uri_components.query
 
     canonical_string = method.upper() + "\n"
     canonical_string += "\n".join(headers_of_interest) + "\n"

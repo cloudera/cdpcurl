@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import datetime
+from unittest.mock import MagicMock, Mock
 
 import pytest
 
@@ -32,23 +33,24 @@ def mock_utc(mocker):
     )
 
 @pytest.fixture()
-def cdp_request(mocker):
+def cdp_request(mocker) -> MagicMock:
     return mocker.patch("cdpcurl.cdpcurl.requests.request")
 
 @pytest.fixture(autouse=True)
-def cdp_response(cdp_request, mocker):
+def cdp_response(cdp_request, mocker) -> Mock:
     mock_response = mocker.Mock(spec=Response)
     mock_response.status_code = 200
     mock_response.text = "some text"
     cdp_request.return_value = mock_response
     return mock_response
 
-def test_make_request():
-    headers = {"content-type": "application/json"}
+def test_make_request(cdp_request):
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
-        "headers": headers,
+        "headers": {
+            "content-type": "application/json"
+        },
         "data": "",
         "access_key": "ABC",
         "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
@@ -63,14 +65,57 @@ def test_make_request():
 
     make_request(**params)
 
-    assert expected == headers
+    cdp_request.assert_called_once_with(
+        params["method"],
+        params["uri"],
+        headers=expected,
+        data=params["data"].encode("utf-8"),
+        verify=True,
+    )
 
-def test_make_request_invalid_private_key():
-    headers = {"content-type": "application/json"}
+def test_make_request_invalid_date_header():
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
-        "headers": headers,
+        "headers": {
+            "content-type": "application/json",
+            "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT"
+        },
+        "data": "",
+        "access_key": "ABC",
+        "private_key": "NOPE",
+        "data_binary": False,
+        "verify": False,
+    }
+
+    with pytest.raises(Exception, match="Malformed request: x-altus-date found in headers"):
+        make_request(**params)
+
+def test_make_request_invalid_auth_header():
+    params = {
+        "method": "GET",
+        "uri": "https://user:pass@host:123/path/?a=b&c=d",
+        "headers": {
+            "content-type": "application/json",
+            "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        },
+        "data": "",
+        "access_key": "ABC",
+        "private_key": "NOPE",
+        "data_binary": False,
+        "verify": False,
+    }
+
+    with pytest.raises(Exception, match="Malformed request: x-altus-auth found in headers"):
+        make_request(**params)
+
+def test_make_request_invalid_private_key():
+    params = {
+        "method": "GET",
+        "uri": "https://user:pass@host:123/path/?a=b&c=d",
+        "headers": {
+            "content-type": "application/json"
+        },
         "data": "",
         "access_key": "ABC",
         "private_key": "NOPE",
@@ -82,11 +127,12 @@ def test_make_request_invalid_private_key():
         make_request(**params)
 
 def test_make_request_verify_ssl(cdp_request):
-    headers = {"content-type": "application/json"}
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
-        "headers": headers,
+        "headers": {
+            "content-type": "application/json"
+        },
         "data": "",
         "access_key": "ABC",
         "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
@@ -102,21 +148,21 @@ def test_make_request_verify_ssl(cdp_request):
 
     make_request(**params)
 
-    assert expected == headers
     cdp_request.assert_called_with(
         params["method"],
         params["uri"],
-        headers=params["headers"],
+        headers=expected,
         data=params["data"].encode("utf-8"),
         verify=params["verify"],
     )
 
 def test_make_request_with_binary_data(cdp_request):
-    headers = {"content-type": "application/json"}
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
-        "headers": headers,
+        "headers": {
+            "content-type": "application/json"
+        },
         "data": b"C\xcfI\x91\xc1\xd0\tw<\xa8\x13\x06{=\x9b\xb3\x1c\xfcl\xfe\xb9\xb18zS\xf4%i*Q\xc9v",
         "access_key": "ABC",
         "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
@@ -131,24 +177,22 @@ def test_make_request_with_binary_data(cdp_request):
 
     make_request(**params)
 
-    assert expected == headers
     cdp_request.assert_called_with(
         params["method"],
         params["uri"],
-        headers=params["headers"],
+        headers=expected,
         data=params["data"],
         verify=True,
     )
 
-def test_make_request_additional_header():
-    headers = {
-        "host": "some.other.host.address.com",
-        "content-type": "application/json",
-    }
+def test_make_request_additional_header(cdp_request):
     params = {
         "method": "GET",
         "uri": "https://user:pass@host:123/path/?a=b&c=d",
-        "headers": headers,
+        "headers": {
+            "host": "some.other.host.address.com",
+            "content-type": "application/json",
+        },
         "data": "",
         "access_key": "ABC",
         "private_key": "Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=",
@@ -164,4 +208,10 @@ def test_make_request_additional_header():
 
     make_request(**params)
 
-    assert expected == headers
+    cdp_request.assert_called_with(
+        params["method"],
+        params["uri"],
+        headers=expected,
+        data=params["data"].encode("utf-8"),
+        verify=True,
+    )

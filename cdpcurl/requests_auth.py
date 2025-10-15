@@ -57,7 +57,7 @@ def auth_v1(access_key=os.getenv('CDP_ACCESS_KEY_ID'),
                 formatdate(timeval=__now().timestamp(), usegmt=True)
 
         req.headers['X-Altus-Auth'] = make_signature_header(req.method,
-                                                            req.url,
+                                                            str(req.url),
                                                             req.headers,
                                                             access_key,
                                                             private_key)

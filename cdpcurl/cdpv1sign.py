@@ -54,9 +54,8 @@ def create_canonical_request_string(
         if not found:
             headers_of_interest.append("")
 
-    # Our signature verification with treat a query with no = as part of the
-    # path, so we do as well. It appears to be a behavior left to the server
-    # implementation, and python and our java servlet implementation disagree.
+    # Our signature verification with treat a query as part of the
+    # path, so we do as well.
     uri_components = urlparse(uri)
     path = uri_components.path
     if not path:

@@ -23,12 +23,20 @@ import pytest
 from requests import Response
 
 from cdpcurl.cdpcurl import make_request
+from cdpcurl.requests_auth import auth_v1
 
+from requests.exceptions import SSLError
+from requests import Response, Request
 
 @pytest.fixture(autouse=True)
 def mock_utc(mocker):
     mocker.patch(
         "cdpcurl.cdpcurl.__now",
+        return_value=datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc),
+    )
+
+    mocker.patch(
+        "cdpcurl.requests_auth.__now",
         return_value=datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc),
     )
 
@@ -63,7 +71,7 @@ def test_make_request(cdp_request):
     expected = {
         "content-type": "application/json",
         "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.nWNf26WEdmbomReFKCAKa6hjc24H4OuAoixXyLoCDFT41hAbusuR8B0WJ_UY8fXORWsEHoHMBCy_FR2ZFoMPCw==",
     }
 
     make_request(**params)
@@ -156,7 +164,7 @@ def test_make_request_verify_ssl(cdp_request):
     expected = {
         "content-type": "application/json",
         "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.nWNf26WEdmbomReFKCAKa6hjc24H4OuAoixXyLoCDFT41hAbusuR8B0WJ_UY8fXORWsEHoHMBCy_FR2ZFoMPCw==",
     }
 
     make_request(**params)
@@ -186,7 +194,7 @@ def test_make_request_with_binary_data(cdp_request):
     expected = {
         "content-type": "application/json",
         "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.nWNf26WEdmbomReFKCAKa6hjc24H4OuAoixXyLoCDFT41hAbusuR8B0WJ_UY8fXORWsEHoHMBCy_FR2ZFoMPCw=="
     }
 
     make_request(**params)
@@ -218,7 +226,7 @@ def test_make_request_additional_header(cdp_request):
         "host": "some.other.host.address.com",
         "content-type": "application/json",
         "x-altus-date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.bej2viXTt1s2fhCwl65y10TiOdduxAyCRm1APvVj1qhTYzaTn3L-4xnlCj_UeTt_nFFUHa0rj03RPdzwBjvQCQ==",
+        "x-altus-auth": "eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.nWNf26WEdmbomReFKCAKa6hjc24H4OuAoixXyLoCDFT41hAbusuR8B0WJ_UY8fXORWsEHoHMBCy_FR2ZFoMPCw==",
     }
 
     make_request(**params)
@@ -230,3 +238,22 @@ def test_make_request_additional_header(cdp_request):
         data=params["data"].encode("utf-8"),
         verify=True,
     )
+
+
+def test_requests_auth_plugin():
+    headers = {'Content-Type': 'application/json'}
+
+    request = Request('GET',
+                      'https://user:pass@host:123/path/?a=b&c=d',
+                      headers=headers,
+                      data='')
+
+    auth = auth_v1('ABC', 'Mzjg58S93/qdg0HuVP6PsLSRDTe+fQZ5++v/mkUUx4k=')
+
+    request = auth(request)
+
+    expected = {'Content-Type': 'application/json',
+                'X-Altus-Date': 'Thu, 01 Jan 1970 00:00:00 GMT',
+                'X-Altus-Auth': 'eyJhY2Nlc3Nfa2V5X2lkIjogIkFCQyIsICJhdXRoX21ldGhvZCI6ICJlZDI1NTE5djEifQ==.nWNf26WEdmbomReFKCAKa6hjc24H4OuAoixXyLoCDFT41hAbusuR8B0WJ_UY8fXORWsEHoHMBCy_FR2ZFoMPCw=='}
+
+    assert expected == request.headers

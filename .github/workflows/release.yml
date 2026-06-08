@@ -46,7 +46,7 @@ jobs:
 
   publish-to-pypi:
     name: Upload release to PyPI
-    # if: startsWith(github.ref, 'refs/tags/')
+    if: github.repository == 'cloudera/cdpcurl'
     needs:
       - build
     runs-on: ubuntu-latest

@@ -97,7 +97,7 @@ r = requests.post('https://api.us-west-1.cdp.cloudera.com/api/v1/environments2/l
 
 ## License
 
-Copyright 2025 Cloudera, Inc.  All rights reserved.
+Copyright 2026 Cloudera, Inc.  All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
